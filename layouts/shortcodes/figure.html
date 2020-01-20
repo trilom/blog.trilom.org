@@ -1,0 +1,79 @@
+{{/* Responsive Figure Morphing */}}
+{{/* Inputs: src: file_name(str)constraint: max_height/fit (str); size (int) */}}
+{{/* Output: resource (obj) */}}
+
+{{/* Enable image to be loaded from local page dir or media library at `static/img/`. */}}
+{{ $image_src := .Get "src" }}
+
+{{ if .Get "library" }}
+    {{ $image_src = printf "images/%s" $image_src | relURL }}
+{{ end }}
+
+{{ warnf "%s" $image_src }}
+
+{{/* Disallow user from opening image in the lightbox? */}}
+{{ $lightbox := eq (.Get "lightbox" | default "true") "true" }}
+
+{{/* Get lightbox group for showing multiple images in a lightbox. */}}
+{{ $group := .Get "lightbox-group" | default "" }}
+
+{{/* Get caption. Support legacy `title` option. */}}
+{{ $caption := .Get "title" | default (.Get "caption") | default "" }}
+
+<figure
+    {{ with .Get "class" }} 
+        class="{{.}}" 
+    {{ end }}>
+    {{ if $lightbox }}
+    <a 
+        data-fancybox="{{$group}}" 
+        href="{{$image_src}}" 
+        {{ with $caption }}
+            data-caption="{{ .|markdownify|emojify }}"
+        {{ end }}>
+    {{ else if .Get "link"}}
+    <a 
+        href="{{ .Get "link" }}" 
+        {{ with .Get "target" }} 
+            target="{{.}}" 
+        {{ end }}
+        {{ with .Get "rel" }} 
+            rel="{{.}}"
+        {{ end }}>
+    {{ end -}}
+    
+    {{/* Split src and type */}}
+    {{ $src := printf "%s%s" (path.Split $image_src).Dir (index (split (path.Base $image_src) "." ) 0) }}
+    {{ $base := (index (split (path.Base $image_src) "." ) 1)}}
+    {{ $https := (hasPrefix $src "http") }}
+
+    {{ if or (not (hasPrefix $src "http")) (not (hasPrefix $src "https")) }}
+        {{/* Get w of image */}}
+        {{ $image := resources.GetMatch ( string $image_src ) }}
+        {{ $w := $image.Width }}
+        {{ $h := $image.Height }}
+        {{ warnf "%s" $w }}
+    <picture
+        style="background: url(data:image/jpeg;base64,{{ ($image.Resize "x20").Content | base64Encode }}); background-size:cover"
+        {{ with .Get "class" }}
+        class="picture {{.}}"
+        {{ end }}>
+        {{ partial "img_dim" (dict "image" $image "alt" ( .Get "alt" ) "width" (int $w) "height" (int $h) "anchor" (.Get "anchor")) }}
+    {{ end }}
+    </picture>
+    {{- if or $lightbox (.Get "link") }}</a>{{ end }}
+
+    {{ if $caption }}
+    {{/* Localize the figure numbering (if enabled). */}}
+        {{ $figure := split (i18n "figure" | default "Figure %d:") "%d" }}
+    <figcaption
+        {{ if eq (.Get "numbered") "true" }} 
+            data-pre="{{ index $figure 0 }}"
+            data-post="{{ index $figure 1 }}" 
+            class="numbered" 
+        {{ end }}>
+        {{ $caption | markdownify | emojify }}
+    </figcaption>
+    {{ end }}
+</figure>
+

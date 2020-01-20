@@ -1,0 +1,50 @@
+{{ $image := .image }}
+{{ $alt := .alt }}
+{{ $w := .width }}
+{{ $h := .height }}
+{{ $anchor := "smart"}}
+{{ if isset . "anchor" }}
+    {{ $anchor = .anchor }}
+{{ end }}
+{{ warnf "%s" $w }}
+
+{{/* crop image when small device */}}
+<source
+    media="(min-width: 36em)"
+    sizes="33.3vw"
+    srcset='
+    {{ if ge $w 1500 }}
+        {{ ($image.Resize "1500x").RelPermalink }} 1500x,
+        {{ ($image.Resize "1200x").RelPermalink }} 1200w,
+    {{ end }}
+    {{ if ge $w 1000 }}
+        {{ ($image.Resize "800x").RelPermalink }} 800w,
+    {{ end }}    
+    {{ if ge $w 500 }}
+        {{ ($image.Resize "500x").RelPermalink }} 500w,
+    {{ end }}    
+    {{ if ge $w 200 }}
+    {{ end }}    
+        {{ ($image.Resize "200x").RelPermalink }} 200w,
+        {{ ($image.Resize "20x").RelPermalink }} 20w,
+        {{ $image.RelPermalink }} {{$w}}w'/>
+
+<source
+    srcset='
+    {{ if and (ge $w 1200) (ge $h 1200) }}
+        {{ ($image.Fill (printf "1200x1200 %s" $anchor)).RelPermalink }} 3x,
+    {{ end }}
+    {{ if and (ge $w 800) (ge $h 800) }}
+        {{ ($image.Fill (printf "800x800 %s" $anchor)).RelPermalink }} 2x,
+    {{ end }}    
+    {{ if and (ge $w 400) (ge $h 400) }}
+        {{ ($image.Fill (printf "400x400 %s" $anchor)).RelPermalink }} 1x,
+    {{ end }}
+        {{ if ge $w $h }} {{ $w = $h }} {{ else }} {{ $h = $w }} {{ end }}
+        {{ ($image.Fill (printf "%dx%d %s" $w $h $anchor)).RelPermalink }} {{$w}}w'/>
+<img
+    loading="lazy"
+    src="{{ ($image.Resize "20x").RelPermalink }}"
+    alt="{{ with $alt }}{{.}}{{end}}"
+    width="{{$w}}"
+    height="{{$h}}"/>
