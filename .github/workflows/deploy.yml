@@ -49,16 +49,14 @@ jobs:
           wget https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/${HUGO_DOWNLOAD}
           tar xvzf ${HUGO_DOWNLOAD} hugo
           mv hugo $HOME/hugo
+          ls -la $HOME/
         env:
           HUGO_VERSION: 0.62.2
-      - name: hugo cache dir
-        id: hugo_cache_dir
-        run: echo "::set-output name=dir::$(echo $HOME/hugo)"
       - name: hugo cache
         id: cache_hugo
         uses: actions/cache@v1
         with:
-          path: ${{ steps.hugo_cache_dir.outputs.dir }}
+          path: ${{ $HOME }}
           key: ${{ runner.os }}-hugo-${{ hashFiles('.hugo') }}
       - name: Hugo Build
         run: $HOME/hugo -v
