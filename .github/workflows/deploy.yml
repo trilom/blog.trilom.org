@@ -68,4 +68,4 @@ jobs:
           fi
         env:
           AWS_ACCESS_KEY_ID: ${{ env.aws_key }}
-          AWS_SECRET_ACCESS_KEY: ${{ env.aws_secret }}
+          AWS_SECRET_ACCESS_KEY: ${{ env.aws_secret }} 
