@@ -34,8 +34,13 @@ jobs:
             echo "::add-mask::${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}" &&
             echo "::set-env name=aws_secret::${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}"
           fi
-      - name: check out the code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2
+      - name: Checkout submodules
+        shell: bash
+        run: |
+          auth_header="$(git config --local --get http.https://github.com/.extraheader)"
+          git submodule sync --recursive
+          git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
       - name: Install Hugo
         run: |
           HUGO_DOWNLOAD=hugo_extended_${HUGO_VERSION}_Linux-64bit.tar.gz
