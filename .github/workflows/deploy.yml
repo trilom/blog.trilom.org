@@ -48,7 +48,7 @@ jobs:
         uses: actions/cache@v1
         with:
           path: /home/runner
-          key: ${{ runner.os }}-hugo-${{ hashFiles('.hugo') }}      
+          key: ${{ runner.os }}-hugoC-${{ hashFiles('.hugo') }}      
       - name: Install Hugo
         if: steps.cache_hugo.outputs.cache-hit != 'true'
         run: |
