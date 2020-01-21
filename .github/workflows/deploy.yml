@@ -59,7 +59,12 @@ jobs:
           path: ${{ steps.hugo_cache_dir.outputs.dir }}
           key: ${{ runner.os }}-hugo-${{ hashFiles('.hugo') }}
       - name: Hugo Build
-        run: $HOME/hugo -v
+        run: |
+          if [ "${{ env.env }}" == "dev" ]; then
+            $HOME/hugo -v --environment develop  
+          else
+            $HOME/hugo -v --environment production
+          fi
       - name: Deploy to S3
         run: |
           if [ "${{ env.env }}" == "dev" ]; then
