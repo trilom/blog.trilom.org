@@ -50,6 +50,7 @@ jobs:
           path: /home/runner
           key: ${{ runner.os }}-hugo-${{ hashFiles('.hugo') }}      
       - name: Install Hugo
+        if: steps.cache_hugo.outputs.cache-hit != 'true'
         run: |
           HUGO_DOWNLOAD=hugo_extended_${HUGO_VERSION}_Linux-64bit.tar.gz
           cd /home/runner && wget https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/${HUGO_DOWNLOAD}
