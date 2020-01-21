@@ -1,4 +1,4 @@
 [[deployment.targets]]
 name = "production"
 URL = "s3://blog.trilom.org?region=us-east-1"
-cloudFrontDistributionID = <ID>
+cloudFrontDistributionID = "no"
