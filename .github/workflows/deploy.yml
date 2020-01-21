@@ -36,13 +36,6 @@ jobs:
             echo "::add-mask::${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}" &&
             echo "::set-env name=aws_secret::${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}"
           fi
-      - name: Install Hugo
-        run: |
-          HUGO_DOWNLOAD=hugo_extended_${HUGO_VERSION}_Linux-64bit.tar.gz
-          cd /home/runner && wget https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/${HUGO_DOWNLOAD}
-          tar xvzf ${HUGO_DOWNLOAD} hugo
-        env:
-          HUGO_VERSION: 0.62.2
       - uses: actions/checkout@v2
       - name: Checkout submodules
         shell: bash
@@ -55,7 +48,14 @@ jobs:
         uses: actions/cache@v1
         with:
           path: /home/runner
-          key: ${{ runner.os }}-hugo-${{ hashFiles('.hugo') }}          
+          key: ${{ runner.os }}-hugo-${{ hashFiles('.hugo') }}      
+      - name: Install Hugo
+        run: |
+          HUGO_DOWNLOAD=hugo_extended_${HUGO_VERSION}_Linux-64bit.tar.gz
+          cd /home/runner && wget https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/${HUGO_DOWNLOAD}
+          tar xvzf ${HUGO_DOWNLOAD} hugo
+        env:
+          HUGO_VERSION: 0.62.2    
       - name: Hugo Build
         run: $HOME/hugo -v
       - name: Deploy to S3
