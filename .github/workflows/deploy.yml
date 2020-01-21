@@ -36,6 +36,21 @@ jobs:
             echo "::add-mask::${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}" &&
             echo "::set-env name=aws_secret::${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}"
           fi
+      - name: Install Hugo
+        run: |
+          HUGO_DOWNLOAD=hugo_extended_${HUGO_VERSION}_Linux-64bit.tar.gz
+          wget https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/${HUGO_DOWNLOAD}
+          tar xvzf ${HUGO_DOWNLOAD} hugo
+          ls -la
+          pwd
+        env:
+          HUGO_VERSION: 0.62.2
+      - name: hugo cache
+        id: cache_hugo
+        uses: actions/cache@v1
+        with:
+          path: /home/runner
+          key: ${{ runner.os }}-hugo-${{ hashFiles('.hugo') }}
       - uses: actions/checkout@v2
       - name: Checkout submodules
         shell: bash
@@ -43,25 +58,11 @@ jobs:
           auth_header="$(git config --local --get http.https://github.com/.extraheader)"
           git submodule sync --recursive
           git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
-      - name: Install Hugo
-        run: |
-          HUGO_DOWNLOAD=hugo_extended_${HUGO_VERSION}_Linux-64bit.tar.gz
-          wget https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/${HUGO_DOWNLOAD}
-          tar xvzf ${HUGO_DOWNLOAD} hugo
-          mv hugo $HOME/hugo
-          ls -la $HOME/
-        env:
-          HUGO_VERSION: 0.62.2
-      - name: hugo cache
-        id: cache_hugo
-        uses: actions/cache@v1
-        with:
-          path: ${{ $HOME }}
-          key: ${{ runner.os }}-hugo-${{ hashFiles('.hugo') }}
       - name: Hugo Build
         run: $HOME/hugo -v
       - name: Deploy to S3
         run: |
+          mv hugo $HOME/hugo
           if [ "${{ env.env }}" == "dev" ]; then
             $HOME/hugo deploy -v
           else
