@@ -1,0 +1,67 @@
+name: deploy
+
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - master
+    types: 
+      - labeled
+      - synchronize
+
+jobs:
+  build:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+    if: >
+      (contains(github.event_name, 'pull_request') && contains(github.event.pull_request.labels.*.name, 'deploy')) ||
+      contains(github.event_name, 'push')
+    steps:
+      - id: set_env
+        run: |
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "::set-env name=env::prod" &&
+            echo "::add-mask::${{ secrets.PROD_AWS_ACCESS_KEY_ID }}" &&
+            echo "::set-env name=aws_key::${{ secrets.PROD_AWS_ACCESS_KEY_ID }}" &&
+            echo "::add-mask::${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}" &&
+            echo "::set-env name=aws_secret::${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}"
+          else
+            echo "::set-env name=env::dev"
+            echo "::add-mask::${{ secrets.DEV_AWS_ACCESS_KEY_ID }}" &&
+            echo "::set-env name=aws_key::${{ secrets.DEV_AWS_ACCESS_KEY_ID }}" &&
+            echo "::add-mask::${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}" &&
+            echo "::set-env name=aws_secret::${{ secrets.DEV_AWS_SECRET_ACCESS_KEY }}"
+          fi
+      - name: check out the code
+        uses: actions/checkout@v2
+      - name: Install Hugo
+        run: |
+          HUGO_DOWNLOAD=hugo_extended_${HUGO_VERSION}_Linux-64bit.tar.gz
+          wget https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/${HUGO_DOWNLOAD}
+          tar xvzf ${HUGO_DOWNLOAD} hugo
+          mv hugo $HOME/hugo
+        env:
+          HUGO_VERSION: 0.62.2
+      - name: hugo cache dir
+        id: hugo_cache_dir
+        run: echo "::set-output name=dir::$(echo $HOME/hugo)"
+      - name: hugo cache
+        id: cache_hugo
+        uses: actions/cache@v1
+        with:
+          path: ${{ steps.hugo_cache_dir.outputs.dir }}
+          key: ${{ runner.os }}-hugo-${{ hashFiles('.hugo') }}
+      - name: Hugo Build
+        run: $HOME/hugo -v
+      - name: Deploy to S3
+        run: |
+          if [ "${{ env.env }}" == "dev" ]; then
+            $HOME/hugo deploy -v --environment develop  
+          else
+            $HOME/hugo deploy -v --invalidateCDN --environment production
+          fi
+        env:
+          AWS_ACCESS_KEY_ID: ${{ env.aws_key }}
+          AWS_SECRET_ACCESS_KEY: ${{ env.aws_secret }}
