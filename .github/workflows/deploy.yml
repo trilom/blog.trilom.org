@@ -62,7 +62,7 @@ jobs:
       - name: Deploy to S3
         run: |
           if [ "${{ env.env }}" == "dev" ]; then
-            /home/runner/hugo deploy -v
+            /home/runner/hugo deploy -v --force
           else
             /home/runner/hugo deploy -v --invalidateCDN
           fi
