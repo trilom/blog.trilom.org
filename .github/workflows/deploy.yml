@@ -22,12 +22,14 @@ jobs:
       - id: set_env
         run: |
           if [ "${{ github.event_name }}" == "pull_request" ]; then
+            echo "::set-env name=HUGO_ENV::production"
             echo "::set-env name=env::prod" &&
             echo "::add-mask::${{ secrets.PROD_AWS_ACCESS_KEY_ID }}" &&
             echo "::set-env name=aws_key::${{ secrets.PROD_AWS_ACCESS_KEY_ID }}" &&
             echo "::add-mask::${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}" &&
             echo "::set-env name=aws_secret::${{ secrets.PROD_AWS_SECRET_ACCESS_KEY }}"
           else
+            echo "::set-env name=HUGO_ENV::develop"
             echo "::set-env name=env::dev"
             echo "::add-mask::${{ secrets.DEV_AWS_ACCESS_KEY_ID }}" &&
             echo "::set-env name=aws_key::${{ secrets.DEV_AWS_ACCESS_KEY_ID }}" &&
@@ -59,18 +61,13 @@ jobs:
           path: ${{ steps.hugo_cache_dir.outputs.dir }}
           key: ${{ runner.os }}-hugo-${{ hashFiles('.hugo') }}
       - name: Hugo Build
-        run: |
-          if [ "${{ env.env }}" == "dev" ]; then
-            $HOME/hugo -v --environment develop  
-          else
-            $HOME/hugo -v --environment production
-          fi
+        run: $HOME/hugo -v
       - name: Deploy to S3
         run: |
           if [ "${{ env.env }}" == "dev" ]; then
-            $HOME/hugo deploy -v --environment develop  
+            $HOME/hugo deploy -v
           else
-            $HOME/hugo deploy -v --invalidateCDN --environment production
+            $HOME/hugo deploy -v --invalidateCDN
           fi
         env:
           AWS_ACCESS_KEY_ID: ${{ env.aws_key }}
