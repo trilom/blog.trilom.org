@@ -4,7 +4,7 @@
 order = [".jpg$", ".jpeg$", ".png$", ".gif$"]
 
 
-[[deployment.targets]]
+[[targets]]
 # An arbitrary name for this target.
 name = "local"
 # The Go Cloud Development Kit URL to deploy to. Examples:
@@ -30,16 +30,16 @@ name = "local"
 
 # [[deployment.matchers]] configure behavior for files that match the Pattern.
 # Samples:
-[[deployment.matchers]]
+[[matchers]]
 pattern = "^.+\\.(js|css|svg|ttf)$"
 cacheControl = "max-age=31536000, no-transform, public"
 gzip = true
 
-[[deployment.matchers]]
+[[matchers]]
 pattern = "^.+\\.(png|jpg)$"
 cacheControl = "max-age=31536000, no-transform, public"
 gzip = false
 
-[[deployment.matchers]]
+[[matchers]]
 pattern = "^.+\\.(html|xml|json)$"
 gzip = true
