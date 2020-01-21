@@ -1,0 +1,3 @@
+[[deployment.targets]]
+name = "develop"
+URL = "s3://dev.blog.trilom.org?region=us-east-1"
