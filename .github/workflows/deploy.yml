@@ -43,12 +43,6 @@ jobs:
           tar xvzf ${HUGO_DOWNLOAD} hugo
         env:
           HUGO_VERSION: 0.62.2
-      - name: hugo cache
-        id: cache_hugo
-        uses: actions/cache@v1
-        with:
-          path: /home/runner
-          key: ${{ runner.os }}-hugo-${{ hashFiles('.hugo') }}
       - uses: actions/checkout@v2
       - name: Checkout submodules
         shell: bash
@@ -56,6 +50,12 @@ jobs:
           auth_header="$(git config --local --get http.https://github.com/.extraheader)"
           git submodule sync --recursive
           git -c "http.extraheader=$auth_header" -c protocol.version=2 submodule update --init --force --recursive --depth=1
+      - name: hugo cache
+        id: cache_hugo
+        uses: actions/cache@v1
+        with:
+          path: /home/runner
+          key: ${{ runner.os }}-hugo-${{ hashFiles('.hugo') }}          
       - name: Hugo Build
         run: $HOME/hugo -v
       - name: Deploy to S3
